@@ -8,7 +8,7 @@ import { Modal } from '@/modal';
 import { t } from '@/text';
 import { getServerUrl } from '@/sync/serverConfig';
 import { sync } from '@/sync/sync';
-import { Camera, useCameraDevices, type CameraDevice, type CodeType, type Code } from 'react-native-vision-camera';
+import { Camera, useCameraDevices, type Code } from 'react-native-vision-camera';
 
 interface UseConnectTerminalOptions {
     onSuccess?: () => void;
@@ -25,10 +25,10 @@ function QRScannerModal({
     onScanned: (data: string) => void;
     onClose: () => void;
 }) {
-    // 始终调用 hook，让 React 管理设备状态
     const devices = useCameraDevices();
     const cameraRef = React.useRef<Camera>(null);
     const [isActive, setIsActive] = React.useState(false);
+    const [hasScanned, setHasScanned] = React.useState(false);
 
     const cameraDevice = React.useMemo(
         () => devices.find(d => d.position === 'back'),
@@ -38,21 +38,24 @@ function QRScannerModal({
     React.useEffect(() => {
         if (visible && cameraDevice) {
             setIsActive(true);
+            setHasScanned(false);
         } else {
             setIsActive(false);
         }
     }, [visible, cameraDevice]);
 
-    const codeScanner = React.useMemo(() => ({
-        codeTypes: ['qr'] as CodeType[],
-        onCodeScanned: (codes: Code[]) => {
-            const data = codes[0]?.value;
-            if (data) {
-                setIsActive(false);
-                onScanned(data);
-            }
+    const handleCodeScanned = React.useCallback((codes: Code[]) => {
+        // 防止重复扫码
+        if (hasScanned) return;
+        
+        const data = codes[0]?.value;
+        if (data) {
+            console.log('[QRScanner] Scanned:', data);
+            setHasScanned(true);
+            setIsActive(false);
+            onScanned(data);
         }
-    }), [onScanned]);
+    }, [hasScanned, onScanned]);
 
     if (!visible) return null;
 
@@ -86,7 +89,10 @@ function QRScannerModal({
                     style={StyleSheet.absoluteFill}
                     device={cameraDevice}
                     isActive={isActive}
-                    codeScanner={codeScanner}
+                    codeScanner={{
+                        codeTypes: ['qr'],
+                        onCodeScanned: handleCodeScanned,
+                    }}
                 />
                 <View style={styles.buttonContainer}>
                     <Pressable style={styles.cancelButton} onPress={onClose}>
