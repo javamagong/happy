@@ -3,14 +3,13 @@ import { Modal as RNModal, View, StyleSheet, Pressable, Text } from 'react-nativ
 import { useAuth } from '@/auth/AuthContext';
 import { decodeBase64 } from '@/encryption/base64';
 import { encryptBox } from '@/encryption/libsodium';
-import { authApprove } from '@/auth/authApprove';
+import { authAccountApprove } from '@/auth/authAccountApprove';
 import { useCheckScannerPermissions } from '@/hooks/useCheckCameraPermissions';
 import { Modal } from '@/modal';
 import { t } from '@/text';
-import { sync } from '@/sync/sync';
 import { Camera, useCameraDevice } from 'react-native-vision-camera';
 
-interface UseConnectTerminalOptions {
+interface UseConnectAccountOptions {
     onSuccess?: () => void;
     onError?: (error: any) => void;
 }
@@ -100,39 +99,35 @@ const styles = StyleSheet.create({
     },
 });
 
-export function useConnectTerminal(options?: UseConnectTerminalOptions) {
+export function useConnectAccount(options?: UseConnectAccountOptions) {
     const auth = useAuth();
     const [isLoading, setIsLoading] = React.useState(false);
     const [showScanner, setShowScanner] = React.useState(false);
     const checkScannerPermissions = useCheckScannerPermissions();
 
     const processAuthUrl = React.useCallback(async (url: string) => {
-        if (!url.startsWith('happy://terminal?')) {
+        if (!url.startsWith('happy:///account?')) {
             Modal.alert(t('common.error'), t('modals.invalidAuthUrl'), [{ text: t('common.ok') }]);
             return false;
         }
-        
+
         setIsLoading(true);
         try {
-            const tail = url.slice('happy://terminal?'.length);
+            const tail = url.slice('happy:///account?'.length);
             const publicKey = decodeBase64(tail, 'base64url');
-            const responseV1 = encryptBox(decodeBase64(auth.credentials!.secret, 'base64url'), publicKey);
-            let responseV2Bundle = new Uint8Array(sync.encryption.contentDataKey.length + 1);
-            responseV2Bundle[0] = 0;
-            responseV2Bundle.set(sync.encryption.contentDataKey, 1);
-            const responseV2 = encryptBox(responseV2Bundle, publicKey);
-            await authApprove(auth.credentials!.token, publicKey, responseV1, responseV2);
-            
-            Modal.alert(t('common.success'), t('modals.terminalConnectedSuccessfully'), [
-                { 
-                    text: t('common.ok'), 
+            const response = encryptBox(decodeBase64(auth.credentials!.secret, 'base64url'), publicKey);
+            await authAccountApprove(auth.credentials!.token, publicKey, response);
+
+            Modal.alert(t('common.success'), t('modals.deviceLinkedSuccessfully'), [
+                {
+                    text: t('common.ok'),
                     onPress: () => options?.onSuccess?.()
                 }
             ]);
             return true;
         } catch (e) {
             console.error(e);
-            Modal.alert(t('common.error'), t('modals.failedToConnectTerminal'), [{ text: t('common.ok') }]);
+            Modal.alert(t('common.error'), t('modals.failedToLinkDevice'), [{ text: t('common.ok') }]);
             options?.onError?.(e);
             return false;
         } finally {
@@ -140,17 +135,17 @@ export function useConnectTerminal(options?: UseConnectTerminalOptions) {
         }
     }, [auth.credentials, options]);
 
-    const connectTerminal = React.useCallback(async () => {
+    const connectAccount = React.useCallback(async () => {
         if (await checkScannerPermissions()) {
             setShowScanner(true);
         } else {
-            Modal.alert(t('common.error'), t('modals.cameraPermissionsRequiredToConnectTerminal'), [{ text: t('common.ok') }]);
+            Modal.alert(t('common.error'), t('modals.cameraPermissionsRequiredToScanQr'), [{ text: t('common.ok') }]);
         }
     }, [checkScannerPermissions]);
 
     const handleScanned = React.useCallback(async (data: string) => {
         setShowScanner(false);
-        if (data.startsWith('happy://terminal?')) {
+        if (data.startsWith('happy:///account?')) {
             await processAuthUrl(data);
         }
     }, [processAuthUrl]);
@@ -160,7 +155,7 @@ export function useConnectTerminal(options?: UseConnectTerminalOptions) {
     }, [processAuthUrl]);
 
     return {
-        connectTerminal,
+        connectAccount,
         connectWithUrl,
         isLoading,
         processAuthUrl,

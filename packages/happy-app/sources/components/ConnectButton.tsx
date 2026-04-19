@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { t } from '@/text';
 
 export const ConnectButton = React.memo(() => {
-    const { connectTerminal, connectWithUrl, isLoading } = useConnectTerminal();
+    const { connectTerminal, connectWithUrl, isLoading, QRScannerModal } = useConnectTerminal();
     const [manualUrl, setManualUrl] = React.useState('');
     const [showManualEntry, setShowManualEntry] = React.useState(false);
 
@@ -112,6 +112,9 @@ export const ConnectButton = React.memo(() => {
                     </View>
                 </View>
             )}
+            
+            {/* 扫码弹窗 */}
+            {QRScannerModal && <QRScannerModal />}
         </View>
     )
 });

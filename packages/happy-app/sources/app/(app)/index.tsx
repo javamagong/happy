@@ -14,6 +14,8 @@ import { trackAccountCreated, trackAccountRestored } from '@/track';
 import { HomeHeaderNotAuth } from "@/components/HomeHeader";
 import { MainView } from "@/components/MainView";
 import { t } from '@/text';
+import { Modal } from '@/modal';
+import axios from 'axios';
 
 export default function Home() {
     const auth = useAuth();
@@ -46,6 +48,24 @@ function NotAuthenticated() {
             }
         } catch (error) {
             console.error('Error creating account', error);
+            let detail = '';
+            if (axios.isAxiosError(error)) {
+                const status = error.response?.status;
+                const data = error.response?.data;
+                const url = error.config?.url;
+                detail = `URL: ${url}\n`;
+                if (status) detail += `Status: ${status}\n`;
+                if (data) {
+                    detail += typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+                } else {
+                    detail += error.message;
+                }
+            } else if (error instanceof Error) {
+                detail = error.message;
+            } else {
+                detail = t('common.error');
+            }
+            Modal.alert(t('common.error'), detail, [{ text: t('common.ok') }]);
         }
     }
 

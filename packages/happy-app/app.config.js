@@ -1,4 +1,5 @@
 const variant = process.env.APP_ENV || 'development';
+const region = process.env.REGION || 'global';
 const name = {
     development: "Happy (dev)",
     preview: "Happy (preview)",
@@ -7,7 +8,7 @@ const name = {
 const bundleId = {
     development: "com.slopus.happy.dev",
     preview: "com.slopus.happy.preview",
-    production: "com.ex3ndr.happy"
+    production: region === 'cn' ? "com.slopus.happy.cn" : "com.ex3ndr.happy"
 }[variant];
 // const stagingElevenLabsAgentId = 'agent_7801k2c0r5hjfraa1kdbytpvs6yt';
 const productionElevenLabsAgentId = 'agent_6701k211syvvegba4kt7m68nxjmw';
@@ -26,8 +27,8 @@ export default {
     expo: {
         name,
         slug: "happy",
-        version: "1.7.0",
-        runtimeVersion: "21",
+        version: "1.7.3",
+        runtimeVersion: "24",
         orientation: "default",
         icon: "./sources/assets/images/icon.png",
         scheme: "happy",
@@ -56,6 +57,7 @@ export default {
                 "android.permission.MODIFY_AUDIO_SETTINGS",
                 "android.permission.ACCESS_NETWORK_STATE",
                 "android.permission.POST_NOTIFICATIONS",
+                "android.permission.CAMERA",
             ],
             blockedPermissions: [
                 "android.permission.ACTIVITY_RECOGNITION",
@@ -66,7 +68,7 @@ export default {
                 "android.permission.READ_MEDIA_VIDEO",
             ],
             package: bundleId,
-            googleServicesFile: "./google-services.json",
+            ...(region !== 'cn' ? { googleServicesFile: "./google-services.json" } : {}),
             intentFilters: variant === 'production' ? [
                 {
                     "action": "VIEW",
@@ -89,6 +91,7 @@ export default {
         },
         plugins: [
             require("./plugins/withEinkCompatibility.js"),
+            require("./plugins/withConditionalGoogleServices.js"),
             [
                 "expo-router",
                 {
@@ -175,17 +178,17 @@ export default {
                 root: "./sources/app"
             },
             eas: {
-                projectId: "4558dd3d-cd5a-47cd-bad9-e591a241cc06"
+                projectId: "0653681c-d4b6-4571-aed8-3346622780a6"
             },
             app: {
                 postHogKey: process.env.EXPO_PUBLIC_POSTHOG_API_KEY,
                 revenueCatAppleKey: process.env.EXPO_PUBLIC_REVENUE_CAT_APPLE,
-                revenueCatGoogleKey: process.env.EXPO_PUBLIC_REVENUE_CAT_GOOGLE,
+                ...(region !== 'cn' ? { revenueCatGoogleKey: process.env.EXPO_PUBLIC_REVENUE_CAT_GOOGLE } : {}),
                 revenueCatStripeKey: process.env.EXPO_PUBLIC_REVENUE_CAT_STRIPE,
                 elevenLabsAgentId,
                 consoleLoggingDefault,
             }
         },
-        owner: "bulkacorp"
+        owner: "javamagong"
     }
 };

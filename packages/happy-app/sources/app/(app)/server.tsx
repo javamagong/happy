@@ -142,6 +142,7 @@ export default function ServerConfigScreen() {
 
         if (confirmed) {
             setServerUrl(inputUrl);
+            router.replace('/');
         }
     };
 
