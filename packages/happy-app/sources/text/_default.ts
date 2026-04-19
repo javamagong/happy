@@ -32,6 +32,9 @@ export const en = {
     common: {
         // Simple string constants
         cancel: 'Cancel',
+        close: 'Close',
+        allow: 'Allow',
+        deny: 'Deny',
         authenticate: 'Authenticate',
         save: 'Save',
         saveAs: 'Save As',
@@ -685,6 +688,10 @@ export const en = {
         deviceLinkedSuccessfully: 'Device linked successfully',
         terminalConnectedSuccessfully: 'Terminal connected successfully',
         invalidAuthUrl: 'Invalid authentication URL',
+        cameraPermissionTitle: 'Camera Access',
+        cameraPermissionMessage: 'Happy needs camera access to scan QR codes from your terminal.',
+        serverMismatch: ({ cliServer, appServer }: { cliServer: string; appServer: string }) =>
+            `Server mismatch. Please check CLI and app server URLs.\n\nCLI: ${cliServer}\nApp: ${appServer}`,
         developerMode: 'Developer Mode',
         developerModeEnabled: 'Developer mode enabled',
         developerModeDisabled: 'Developer mode disabled',

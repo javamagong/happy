@@ -47,6 +47,9 @@ export const en: TranslationStructure = {
     common: {
         // Simple string constants
         cancel: 'Cancel',
+        allow: 'Allow',
+        deny: 'Deny',
+        close: 'Close',
         authenticate: 'Authenticate',
         save: 'Save',
         saveAs: 'Save As',
@@ -700,6 +703,10 @@ export const en: TranslationStructure = {
         deviceLinkedSuccessfully: 'Device linked successfully',
         terminalConnectedSuccessfully: 'Terminal connected successfully',
         invalidAuthUrl: 'Invalid authentication URL',
+        cameraPermissionTitle: 'Camera Access',
+        cameraPermissionMessage: 'Happy needs camera access to scan QR codes from your terminal.',
+        serverMismatch: ({ cliServer, appServer }: { cliServer: string; appServer: string }) =>
+            `CLI server address does not match your app server.\n\nCLI: ${cliServer}\nApp: ${appServer}\n\nPlease ensure both are using the same server URL.`,
         developerMode: 'Developer Mode',
         developerModeEnabled: 'Developer mode enabled',
         developerModeDisabled: 'Developer mode disabled',

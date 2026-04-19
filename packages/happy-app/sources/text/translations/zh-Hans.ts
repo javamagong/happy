@@ -34,6 +34,9 @@ export const zhHans: TranslationStructure = {
     common: {
         // Simple string constants
         cancel: '取消',
+        allow: '允许',
+        deny: '拒绝',
+        close: '关闭',
         authenticate: '认证',
         save: '保存',
         saveAs: '另存为',
@@ -687,6 +690,10 @@ export const zhHans: TranslationStructure = {
         deviceLinkedSuccessfully: '设备链接成功',
         terminalConnectedSuccessfully: '终端连接成功',
         invalidAuthUrl: '无效的认证 URL',
+        cameraPermissionTitle: '相机访问权限',
+        cameraPermissionMessage: 'Happy 需要相机权限来扫描终端的二维码。',
+        serverMismatch: ({ cliServer, appServer }: { cliServer: string; appServer: string }) =>
+            `CLI 服务器地址与你的 app 不匹配。\n\nCLI: ${cliServer}\nApp: ${appServer}\n\n请确保两者使用相同的服务器地址。`,
         developerMode: '开发者模式',
         developerModeEnabled: '开发者模式已启用',
         developerModeDisabled: '开发者模式已禁用',

@@ -86,7 +86,7 @@ const stylesheet = StyleSheet.create((theme) => ({
 }));
 
 export function EmptyMainScreen() {
-    const { connectTerminal, connectWithUrl, isLoading } = useConnectTerminal();
+    const { connectTerminal, connectWithUrl, isLoading, QRScannerModal } = useConnectTerminal();
     const { theme } = useUnistyles();
     const styles = stylesheet;
 
@@ -106,6 +106,7 @@ export function EmptyMainScreen() {
 
             {Platform.OS !== 'web' && (
                 <>
+                    {QRScannerModal}
                     <View style={styles.stepsContainer}>
                         <View style={styles.stepRow}>
                             <View style={styles.stepNumber}>

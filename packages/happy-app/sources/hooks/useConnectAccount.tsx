@@ -1,20 +1,20 @@
 import * as React from 'react';
-import { Modal as RNModal, View, StyleSheet, Pressable, Text } from 'react-native';
+import { Modal as RNModal, View, StyleSheet, Pressable, Text, PermissionsAndroid, Platform } from 'react-native';
 import { useAuth } from '@/auth/AuthContext';
 import { decodeBase64 } from '@/encryption/base64';
 import { encryptBox } from '@/encryption/libsodium';
 import { authAccountApprove } from '@/auth/authAccountApprove';
-import { useCheckScannerPermissions } from '@/hooks/useCheckCameraPermissions';
 import { Modal } from '@/modal';
 import { t } from '@/text';
-import { Camera, useCameraDevice } from 'react-native-vision-camera';
+import { sync } from '@/sync/sync';
+import { Camera, useCameraDevices, type CodeType, type Code } from 'react-native-vision-camera';
 
 interface UseConnectAccountOptions {
     onSuccess?: () => void;
     onError?: (error: any) => void;
 }
 
-// 扫码弹窗 - 使用 react-native-vision-camera，不依赖 Google 服务
+// 扫码弹窗 - 使用 react-native-vision-camera 静态 API
 function QRScannerModal({
     visible,
     onScanned,
@@ -24,13 +24,26 @@ function QRScannerModal({
     onScanned: (data: string) => void;
     onClose: () => void;
 }) {
-    const device = useCameraDevice('back');
+    const devices = useCameraDevices();
     const cameraRef = React.useRef<Camera>(null);
     const [isActive, setIsActive] = React.useState(false);
 
+    const cameraDevice = React.useMemo(
+        () => devices.find(d => d.position === 'back'),
+        [devices]
+    );
+
+    React.useEffect(() => {
+        if (visible && cameraDevice) {
+            setIsActive(true);
+        } else {
+            setIsActive(false);
+        }
+    }, [visible, cameraDevice]);
+
     const codeScanner = React.useMemo(() => ({
-        formats: ['qr'] as const,
-        onCodeScanned: (codes: any[]) => {
+        codeTypes: ['qr'] as CodeType[],
+        onCodeScanned: (codes: Code[]) => {
             const data = codes[0]?.value;
             if (data) {
                 setIsActive(false);
@@ -39,16 +52,24 @@ function QRScannerModal({
         }
     }), [onScanned]);
 
-    React.useEffect(() => {
-        if (visible && device) {
-            setIsActive(true);
-        } else {
-            setIsActive(false);
-        }
-    }, [visible, device]);
-
     if (!visible) return null;
-    if (!device) return null;
+
+    if (!cameraDevice) {
+        return (
+            <RNModal
+                visible={visible}
+                animationType="slide"
+                transparent={false}
+                onRequestClose={onClose}
+            >
+                <View style={styles.container}>
+                    <View style={styles.loadingContainer}>
+                        <Text style={styles.loadingText}>{t('common.loading')}</Text>
+                    </View>
+                </View>
+            </RNModal>
+        );
+    }
 
     return (
         <RNModal
@@ -61,7 +82,7 @@ function QRScannerModal({
                 <Camera
                     ref={cameraRef}
                     style={StyleSheet.absoluteFill}
-                    device={device}
+                    device={cameraDevice}
                     isActive={isActive}
                     codeScanner={codeScanner}
                 />
@@ -97,13 +118,40 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
     },
+    loadingContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    loadingText: {
+        color: '#fff',
+        fontSize: 16,
+    },
 });
+
+async function checkCameraPermission(): Promise<boolean> {
+    if (Platform.OS !== 'android') return true;
+    return PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA);
+}
+
+async function requestCameraPermission(): Promise<boolean> {
+    if (Platform.OS !== 'android') return true;
+    const result = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+            title: t('modals.cameraPermissionTitle'),
+            message: t('modals.cameraPermissionMessage'),
+            buttonPositive: t('common.allow'),
+            buttonNegative: t('common.deny'),
+        }
+    );
+    return result === PermissionsAndroid.RESULTS.GRANTED;
+}
 
 export function useConnectAccount(options?: UseConnectAccountOptions) {
     const auth = useAuth();
     const [isLoading, setIsLoading] = React.useState(false);
     const [showScanner, setShowScanner] = React.useState(false);
-    const checkScannerPermissions = useCheckScannerPermissions();
 
     const processAuthUrl = React.useCallback(async (url: string) => {
         if (!url.startsWith('happy:///account?')) {
@@ -111,37 +159,36 @@ export function useConnectAccount(options?: UseConnectAccountOptions) {
             return false;
         }
 
-        setIsLoading(true);
-        try {
-            const tail = url.slice('happy:///account?'.length);
-            const publicKey = decodeBase64(tail, 'base64url');
-            const response = encryptBox(decodeBase64(auth.credentials!.secret, 'base64url'), publicKey);
-            await authAccountApprove(auth.credentials!.token, publicKey, response);
+        const tail = url.slice('happy:///account?'.length);
+        const publicKey = decodeBase64(tail, 'base64url');
+        const response = encryptBox(decodeBase64(auth.credentials!.secret, 'base64url'), publicKey);
+        await authAccountApprove(auth.credentials!.token, publicKey, response);
 
-            Modal.alert(t('common.success'), t('modals.deviceLinkedSuccessfully'), [
-                {
-                    text: t('common.ok'),
-                    onPress: () => options?.onSuccess?.()
-                }
-            ]);
-            return true;
-        } catch (e) {
-            console.error(e);
-            Modal.alert(t('common.error'), t('modals.failedToLinkDevice'), [{ text: t('common.ok') }]);
-            options?.onError?.(e);
-            return false;
-        } finally {
-            setIsLoading(false);
-        }
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        await sync.refreshMachines();
+
+        Modal.alert(t('common.success'), t('modals.deviceLinkedSuccessfully'), [
+            {
+                text: t('common.ok'),
+                onPress: () => options?.onSuccess?.()
+            }
+        ]);
+        return true;
     }, [auth.credentials, options]);
 
     const connectAccount = React.useCallback(async () => {
-        if (await checkScannerPermissions()) {
+        const granted = await checkCameraPermission();
+        if (granted) {
             setShowScanner(true);
         } else {
-            Modal.alert(t('common.error'), t('modals.cameraPermissionsRequiredToScanQr'), [{ text: t('common.ok') }]);
+            const reqGranted = await requestCameraPermission();
+            if (reqGranted) {
+                setShowScanner(true);
+            } else {
+                Modal.alert(t('common.error'), t('modals.cameraPermissionsRequiredToScanQr'), [{ text: t('common.ok') }]);
+            }
         }
-    }, [checkScannerPermissions]);
+    }, []);
 
     const handleScanned = React.useCallback(async (data: string) => {
         setShowScanner(false);

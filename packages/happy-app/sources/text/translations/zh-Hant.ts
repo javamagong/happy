@@ -34,7 +34,9 @@ export const zhHant: TranslationStructure = {
     common: {
         // Simple string constants
         cancel: '取消',
-        authenticate: '驗證',
+        allow: 'Allow',
+        deny: 'Deny',
+        close: 'Close',        authenticate: '驗證',
         save: '儲存',
         saveAs: '另存為',
         error: '錯誤',
@@ -686,6 +688,10 @@ export const zhHant: TranslationStructure = {
         deviceLinkedSuccessfully: '裝置連結成功',
         terminalConnectedSuccessfully: '終端連線成功',
         invalidAuthUrl: '無效的驗證 URL',
+        cameraPermissionTitle: '相機存取權限',
+        cameraPermissionMessage: 'Happy 需要相機權限來掃描終端的 QR 碼。',
+        serverMismatch: ({ cliServer, appServer }: { cliServer: string; appServer: string }) =>
+            `Server mismatch. Please check CLI and app server URLs.\n\nCLI: ${cliServer}\nApp: ${appServer}`,
         developerMode: '開發者模式',
         developerModeEnabled: '開發者模式已啟用',
         developerModeDisabled: '開發者模式已停用',

@@ -27,8 +27,8 @@ export default {
     expo: {
         name,
         slug: "happy",
-        version: "1.7.3",
-        runtimeVersion: "24",
+        version: "1.8.0",
+        runtimeVersion: "31",
         orientation: "default",
         icon: "./sources/assets/images/icon.png",
         scheme: "happy",
@@ -41,6 +41,7 @@ export default {
             },
             infoPlist: {
                 NSMicrophoneUsageDescription: "Allow $(PRODUCT_NAME) to access your microphone for voice conversations with AI.",
+                NSCameraUsageDescription: "Allow $(PRODUCT_NAME) to access your camera to scan QR codes.",
                 NSLocalNetworkUsageDescription: "Allow $(PRODUCT_NAME) to find and connect to local devices on your network.",
                 NSBonjourServices: ["_http._tcp", "_https._tcp"]
             },
@@ -127,14 +128,6 @@ export default {
                 "expo-calendar",
                 {
                     "calendarPermission": "Allow $(PRODUCT_NAME) to access your calendar to improve AI quality."
-                }
-            ],
-            [
-                "expo-camera",
-                {
-                    cameraPermission: "Allow $(PRODUCT_NAME) to access your camera to scan QR codes and share photos with AI.",
-                    microphonePermission: "Allow $(PRODUCT_NAME) to access your microphone for voice conversations.",
-                    recordAudioAndroid: true
                 }
             ],
             [

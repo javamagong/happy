@@ -55,7 +55,7 @@ export const SettingsView = React.memo(function SettingsView() {
     const avatarUrl = getAvatarUrl(profile);
     const bio = getBio(profile);
 
-    const { connectTerminal, connectWithUrl, isLoading } = useConnectTerminal();
+    const { connectTerminal, connectWithUrl, isLoading, QRScannerModal } = useConnectTerminal();
 
     const handleGitHub = async () => {
         const url = 'https://github.com/slopus/happy';
@@ -139,7 +139,7 @@ export const SettingsView = React.memo(function SettingsView() {
 
 
     return (
-
+        <>
         <ItemList style={{ paddingTop: 0 }}>
             {/* App Info Header */}
             <View style={{ maxWidth: layout.maxWidth, alignSelf: 'center', width: '100%' }}>
@@ -434,5 +434,7 @@ export const SettingsView = React.memo(function SettingsView() {
             </ItemGroup>
 
         </ItemList>
+        {QRScannerModal && QRScannerModal()}
+        </>
     );
 });

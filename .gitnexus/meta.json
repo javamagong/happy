@@ -1,12 +1,12 @@
 {
   "repoPath": "/Users/zmingchun/Documents/workzone/aizone/happy-coder/happy",
-  "lastCommit": "13855248923b1bc1b5818dee6c52856f01631eb0",
-  "indexedAt": "2026-04-19T03:46:04.512Z",
+  "lastCommit": "d50f1d4e197c6ccbfaf221c44ef04ee93aa60b4c",
+  "indexedAt": "2026-04-19T06:41:28.337Z",
   "stats": {
-    "files": 2009,
-    "nodes": 29904,
-    "edges": 50617,
-    "communities": 1069,
+    "files": 1007,
+    "nodes": 15260,
+    "edges": 27402,
+    "communities": 535,
     "processes": 300,
     "embeddings": 0
   }

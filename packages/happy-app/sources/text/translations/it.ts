@@ -32,7 +32,9 @@ export const it: TranslationStructure = {
     common: {
         // Simple string constants
         cancel: 'Annulla',
-        authenticate: 'Autentica',
+        allow: 'Allow',
+        deny: 'Deny',
+        close: 'Close',        authenticate: 'Autentica',
         save: 'Salva',
         error: 'Errore',
         success: 'Successo',
@@ -684,6 +686,10 @@ export const it: TranslationStructure = {
         deviceLinkedSuccessfully: 'Dispositivo collegato con successo',
         terminalConnectedSuccessfully: 'Terminale collegato con successo',
         invalidAuthUrl: 'URL di autenticazione non valido',
+        cameraPermissionTitle: 'Accesso alla fotocamera',
+        cameraPermissionMessage: "Happy ha bisogno dell'accesso alla fotocamera per scansionare i codici QR dal terminale.",
+        serverMismatch: ({ cliServer, appServer }: { cliServer: string; appServer: string }) =>
+            `Server mismatch. Please check CLI and app server URLs.\n\nCLI: ${cliServer}\nApp: ${appServer}`,
         developerMode: 'Modalità sviluppatore',
         developerModeEnabled: 'Modalità sviluppatore attivata',
         developerModeDisabled: 'Modalità sviluppatore disattivata',

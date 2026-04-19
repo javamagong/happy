@@ -1,20 +1,14 @@
-import { useCameraPermissions } from "expo-camera";
+import { useCameraPermission } from "react-native-vision-camera";
 import { Platform } from "react-native";
 
 export function useCheckScannerPermissions(): () => Promise<boolean> {
-    const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+    const { hasPermission, requestPermission } = useCameraPermission();
 
     return async () => {
-        if (!cameraPermission) {
-            // camera permissions are loading
-            return false;
+        if (hasPermission) {
+            return true;
         }
 
-        if (!cameraPermission.granted) {
-            const reqRes = await requestCameraPermission();
-            return reqRes.granted;
-        }
-
-        return true;
-    }
+        return await requestPermission();
+    };
 }

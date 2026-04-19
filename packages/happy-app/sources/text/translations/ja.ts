@@ -35,7 +35,9 @@ export const ja: TranslationStructure = {
     common: {
         // Simple string constants
         cancel: 'キャンセル',
-        authenticate: '認証',
+        allow: 'Allow',
+        deny: 'Deny',
+        close: 'Close',        authenticate: '認証',
         save: '保存',
         error: 'エラー',
         success: '成功',
@@ -687,6 +689,10 @@ export const ja: TranslationStructure = {
         deviceLinkedSuccessfully: 'デバイスが正常にリンクされました',
         terminalConnectedSuccessfully: 'ターミナルが正常に接続されました',
         invalidAuthUrl: '無効な認証URL',
+        cameraPermissionTitle: 'カメラへのアクセス',
+        cameraPermissionMessage: 'Happy は端末から QR コードをスキャンするためにカメラへのアクセスが必要です。',
+        serverMismatch: ({ cliServer, appServer }: { cliServer: string; appServer: string }) =>
+            `Server mismatch. Please check CLI and app server URLs.\n\nCLI: ${cliServer}\nApp: ${appServer}`,
         developerMode: '開発者モード',
         developerModeEnabled: '開発者モードが有効になりました',
         developerModeDisabled: '開発者モードが無効になりました',

@@ -11,6 +11,9 @@ import { ItemGroup } from '@/components/ItemGroup';
 import { Item } from '@/components/Item';
 import { useUnistyles } from 'react-native-unistyles';
 import { t } from '@/text';
+import { getServerUrl } from '@/sync/serverConfig';
+import { useEffect } from 'react';
+import { Modal } from '@/modal';
 
 export default function TerminalScreen() {
     const router = useRouter();
@@ -28,6 +31,25 @@ export default function TerminalScreen() {
             return null;
         }
     }, [searchParams])
+
+    // Check for server mismatch
+    useEffect(() => {
+        const qrServerUrl = searchParams['server'];
+        if (qrServerUrl && typeof qrServerUrl === 'string') {
+            const appServerUrl = getServerUrl();
+            if (qrServerUrl !== appServerUrl) {
+                Modal.alert(
+                    t('common.error'),
+                    t('modals.serverMismatch', {
+                        cliServer: qrServerUrl,
+                        appServer: appServerUrl,
+                    }),
+                    [{ text: t('common.ok') }]
+                );
+            }
+        }
+    }, [searchParams]);
+
     const { processAuthUrl, isLoading } = useConnectTerminal({
         onSuccess: () => {
             router.back();

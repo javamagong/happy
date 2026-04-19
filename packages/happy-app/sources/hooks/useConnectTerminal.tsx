@@ -1,21 +1,21 @@
 import * as React from 'react';
-import { Modal as RNModal, View, StyleSheet, Pressable, Text } from 'react-native';
+import { Modal as RNModal, View, StyleSheet, Pressable, Text, PermissionsAndroid, Platform } from 'react-native';
 import { useAuth } from '@/auth/AuthContext';
 import { decodeBase64 } from '@/encryption/base64';
 import { encryptBox } from '@/encryption/libsodium';
 import { authApprove } from '@/auth/authApprove';
-import { useCheckScannerPermissions } from '@/hooks/useCheckCameraPermissions';
 import { Modal } from '@/modal';
 import { t } from '@/text';
+import { getServerUrl } from '@/sync/serverConfig';
 import { sync } from '@/sync/sync';
-import { Camera, useCameraDevice } from 'react-native-vision-camera';
+import { Camera, useCameraDevices, type CameraDevice, type CodeType, type Code } from 'react-native-vision-camera';
 
 interface UseConnectTerminalOptions {
     onSuccess?: () => void;
     onError?: (error: any) => void;
 }
 
-// 扫码弹窗 - 使用 react-native-vision-camera，不依赖 Google 服务
+// 扫码弹窗组件 - 内部使用 useCameraDevices hook
 function QRScannerModal({
     visible,
     onScanned,
@@ -25,13 +25,27 @@ function QRScannerModal({
     onScanned: (data: string) => void;
     onClose: () => void;
 }) {
-    const device = useCameraDevice('back');
+    // 始终调用 hook，让 React 管理设备状态
+    const devices = useCameraDevices();
     const cameraRef = React.useRef<Camera>(null);
     const [isActive, setIsActive] = React.useState(false);
 
+    const cameraDevice = React.useMemo(
+        () => devices.find(d => d.position === 'back'),
+        [devices]
+    );
+
+    React.useEffect(() => {
+        if (visible && cameraDevice) {
+            setIsActive(true);
+        } else {
+            setIsActive(false);
+        }
+    }, [visible, cameraDevice]);
+
     const codeScanner = React.useMemo(() => ({
-        formats: ['qr'] as const,
-        onCodeScanned: (codes: any[]) => {
+        codeTypes: ['qr'] as CodeType[],
+        onCodeScanned: (codes: Code[]) => {
             const data = codes[0]?.value;
             if (data) {
                 setIsActive(false);
@@ -40,16 +54,24 @@ function QRScannerModal({
         }
     }), [onScanned]);
 
-    React.useEffect(() => {
-        if (visible && device) {
-            setIsActive(true);
-        } else {
-            setIsActive(false);
-        }
-    }, [visible, device]);
-
     if (!visible) return null;
-    if (!device) return null;
+
+    if (!cameraDevice) {
+        return (
+            <RNModal
+                visible={visible}
+                animationType="slide"
+                transparent={false}
+                onRequestClose={onClose}
+            >
+                <View style={styles.container}>
+                    <View style={styles.loadingContainer}>
+                        <Text style={styles.loadingText}>{t('common.loading')}</Text>
+                    </View>
+                </View>
+            </RNModal>
+        );
+    }
 
     return (
         <RNModal
@@ -62,7 +84,7 @@ function QRScannerModal({
                 <Camera
                     ref={cameraRef}
                     style={StyleSheet.absoluteFill}
-                    device={device}
+                    device={cameraDevice}
                     isActive={isActive}
                     codeScanner={codeScanner}
                 />
@@ -98,34 +120,88 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
     },
+    loadingContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    loadingText: {
+        color: '#fff',
+        fontSize: 16,
+    },
 });
+
+async function checkCameraPermission(): Promise<boolean> {
+    if (Platform.OS !== 'android') return true;
+    return PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA);
+}
+
+async function requestCameraPermission(): Promise<boolean> {
+    if (Platform.OS !== 'android') return true;
+    const result = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+            title: t('modals.cameraPermissionTitle'),
+            message: t('modals.cameraPermissionMessage'),
+            buttonPositive: t('common.allow'),
+            buttonNegative: t('common.deny'),
+        }
+    );
+    return result === PermissionsAndroid.RESULTS.GRANTED;
+}
 
 export function useConnectTerminal(options?: UseConnectTerminalOptions) {
     const auth = useAuth();
     const [isLoading, setIsLoading] = React.useState(false);
     const [showScanner, setShowScanner] = React.useState(false);
-    const checkScannerPermissions = useCheckScannerPermissions();
 
     const processAuthUrl = React.useCallback(async (url: string) => {
         if (!url.startsWith('happy://terminal?')) {
             Modal.alert(t('common.error'), t('modals.invalidAuthUrl'), [{ text: t('common.ok') }]);
             return false;
         }
-        
+
+        const tail = url.slice('happy://terminal?'.length);
+        const searchParams = new URLSearchParams(tail);
+        const keys = Array.from(searchParams.keys());
+        const publicKey = keys.length > 0 ? decodeBase64(keys[0], 'base64url') : null;
+        const qrServerUrl = searchParams.get('server');
+
+        if (!publicKey) {
+            Modal.alert(t('common.error'), t('modals.invalidAuthUrl'), [{ text: t('common.ok') }]);
+            return false;
+        }
+
+        if (qrServerUrl) {
+            const appServerUrl = getServerUrl();
+            if (qrServerUrl !== appServerUrl) {
+                Modal.alert(
+                    t('common.error'),
+                    t('modals.serverMismatch', {
+                        cliServer: qrServerUrl,
+                        appServer: appServerUrl,
+                    }),
+                    [{ text: t('common.ok') }]
+                );
+                return false;
+            }
+        }
+
         setIsLoading(true);
         try {
-            const tail = url.slice('happy://terminal?'.length);
-            const publicKey = decodeBase64(tail, 'base64url');
             const responseV1 = encryptBox(decodeBase64(auth.credentials!.secret, 'base64url'), publicKey);
             let responseV2Bundle = new Uint8Array(sync.encryption.contentDataKey.length + 1);
             responseV2Bundle[0] = 0;
             responseV2Bundle.set(sync.encryption.contentDataKey, 1);
             const responseV2 = encryptBox(responseV2Bundle, publicKey);
             await authApprove(auth.credentials!.token, publicKey, responseV1, responseV2);
-            
+
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            await sync.refreshMachines();
+
             Modal.alert(t('common.success'), t('modals.terminalConnectedSuccessfully'), [
-                { 
-                    text: t('common.ok'), 
+                {
+                    text: t('common.ok'),
                     onPress: () => options?.onSuccess?.()
                 }
             ]);
@@ -141,12 +217,18 @@ export function useConnectTerminal(options?: UseConnectTerminalOptions) {
     }, [auth.credentials, options]);
 
     const connectTerminal = React.useCallback(async () => {
-        if (await checkScannerPermissions()) {
+        const granted = await checkCameraPermission();
+        if (granted) {
             setShowScanner(true);
         } else {
-            Modal.alert(t('common.error'), t('modals.cameraPermissionsRequiredToConnectTerminal'), [{ text: t('common.ok') }]);
+            const reqGranted = await requestCameraPermission();
+            if (reqGranted) {
+                setShowScanner(true);
+            } else {
+                Modal.alert(t('common.error'), t('modals.cameraPermissionsRequiredToConnectTerminal'), [{ text: t('common.ok') }]);
+            }
         }
-    }, [checkScannerPermissions]);
+    }, []);
 
     const handleScanned = React.useCallback(async (data: string) => {
         setShowScanner(false);

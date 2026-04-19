@@ -43,7 +43,9 @@ export const ru: TranslationStructure = {
     common: {
         // Simple string constants
         cancel: 'Отмена',
-        authenticate: 'Авторизация',
+        allow: 'Allow',
+        deny: 'Deny',
+        close: 'Close',        authenticate: 'Авторизация',
         save: 'Сохранить',
         saveAs: 'Сохранить как',
         error: 'Ошибка',
@@ -690,6 +692,10 @@ export const ru: TranslationStructure = {
         deviceLinkedSuccessfully: 'Устройство успешно связано',
         terminalConnectedSuccessfully: 'Терминал успешно подключен',
         invalidAuthUrl: 'Неверный URL авторизации',
+        cameraPermissionTitle: 'Доступ к камере',
+        cameraPermissionMessage: 'Happy требуется доступ к камере для сканирования QR-кодов с вашего терминала.',
+        serverMismatch: ({ cliServer, appServer }: { cliServer: string; appServer: string }) =>
+            `Server mismatch. Please check CLI and app server URLs.\n\nCLI: ${cliServer}\nApp: ${appServer}`,
         developerMode: 'Режим разработчика',
         developerModeEnabled: 'Режим разработчика включен',
         developerModeDisabled: 'Режим разработчика отключен',
