@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Modal as RNModal, View, StyleSheet, Pressable, Text, PermissionsAndroid, Platform } from 'react-native';
+import { Modal as RNModal, View, StyleSheet, Pressable, Text, PermissionsAndroid, Platform, Alert } from 'react-native';
 import { useAuth } from '@/auth/AuthContext';
 import { decodeBase64 } from '@/encryption/base64';
 import { encryptBox } from '@/encryption/libsodium';
@@ -45,6 +45,7 @@ function QRScannerModal({
         if (visible && cameraDevice) {
             scannedRef.current = false;
             setIsActive(true);
+            Alert.alert('[DEBUG] Scanner', 'Camera opened, codeScanner active. device=' + cameraDevice.id);
         } else {
             setIsActive(false);
         }
@@ -53,6 +54,7 @@ function QRScannerModal({
     const codeScanner = useCodeScanner({
         codeTypes: ['qr'],
         onCodeScanned: (codes) => {
+            Alert.alert('[DEBUG] onCodeScanned', `codes: ${JSON.stringify(codes.map(c => c.value))}`);
             if (scannedRef.current) return;
             const data = codes[0]?.value;
             if (data) {
@@ -97,7 +99,7 @@ function QRScannerModal({
                     device={cameraDevice}
                     isActive={isActive}
                     codeScanner={codeScanner}
-                    onError={(error) => console.error('[QRScanner] Camera error:', error)}
+                    onError={(error) => Alert.alert('[DEBUG] Camera Error', String(error?.message || error))}
                 />
                 <View style={styles.buttonContainer}>
                     <Pressable style={styles.cancelButton} onPress={onClose}>
