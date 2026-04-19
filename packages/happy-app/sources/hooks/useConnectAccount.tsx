@@ -27,7 +27,12 @@ function QRScannerModal({
     const devices = useCameraDevices();
     const cameraRef = React.useRef<Camera>(null);
     const [isActive, setIsActive] = React.useState(false);
-    const [hasScanned, setHasScanned] = React.useState(false);
+    const scannedRef = React.useRef(false);
+    const onScannedRef = React.useRef(onScanned);
+
+    React.useEffect(() => {
+        onScannedRef.current = onScanned;
+    }, [onScanned]);
 
     const cameraDevice = React.useMemo(
         () => devices.find(d => d.position === 'back'),
@@ -36,28 +41,25 @@ function QRScannerModal({
 
     React.useEffect(() => {
         if (visible && cameraDevice) {
+            scannedRef.current = false;
             setIsActive(true);
-            setHasScanned(false);
         } else {
             setIsActive(false);
         }
     }, [visible, cameraDevice]);
 
-    const handleCodeScanned = React.useCallback((codes: Code[]) => {
-        if (hasScanned) return;
-        
-        const data = codes[0]?.value;
-        if (data) {
-            console.log('[QRScanner] Scanned:', data);
-            setHasScanned(true);
-            setIsActive(false);
-            onScanned(data);
-        }
-    }, [hasScanned, onScanned]);
-
     const codeScanner = useCodeScanner({
         codeTypes: ['qr'],
-        onCodeScanned: handleCodeScanned,
+        onCodeScanned: (codes) => {
+            if (scannedRef.current) return;
+            const data = codes[0]?.value;
+            if (data) {
+                console.log('[QRScanner] Scanned:', data);
+                scannedRef.current = true;
+                setIsActive(false);
+                onScannedRef.current(data);
+            }
+        },
     });
 
     if (!visible) return null;
@@ -93,6 +95,7 @@ function QRScannerModal({
                     device={cameraDevice}
                     isActive={isActive}
                     codeScanner={codeScanner}
+                    onError={(error) => console.error('[QRScanner] Camera error:', error)}
                 />
                 <View style={styles.buttonContainer}>
                     <Pressable style={styles.cancelButton} onPress={onClose}>
