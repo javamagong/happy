@@ -84,3 +84,23 @@ We're engineers scattered across Bay Area coffee shops and hacker houses, consta
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.
+
+## 无谷歌服务版本说明
+
+本分支 (`no-google-cn`) 基于原始 Happy Coder 项目修改，移除了所有 Google 服务依赖，适配中国大陆地区使用环境。
+
+### 主要改动
+
+- 移除 Firebase 配置 (`google-services.json`)
+- 使用 `react-native-vision-camera` 替代 Google Code Scanner API
+- 移除 Google Play Billing 依赖
+- 添加中国区构建配置 (`production-cn`)
+- 使用阿里云/腾讯云镜像加速构建
+
+### 原始项目
+
+- **项目地址**: https://github.com/slopus/happy
+- **许可证**: MIT License
+- **原始作者**: Happy Team (bulkacorp)
+
+本修改遵循 MIT 许可证，保留原始版权声明和许可证文本。
