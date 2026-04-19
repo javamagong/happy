@@ -106,7 +106,7 @@ export function EmptyMainScreen() {
 
             {Platform.OS !== 'web' && (
                 <>
-                    {QRScannerModal}
+                    {QRScannerModal && <QRScannerModal />}
                     <View style={styles.stepsContainer}>
                         <View style={styles.stepRow}>
                             <View style={styles.stepNumber}>

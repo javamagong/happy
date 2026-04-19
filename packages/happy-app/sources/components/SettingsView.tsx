@@ -434,7 +434,7 @@ export const SettingsView = React.memo(function SettingsView() {
             </ItemGroup>
 
         </ItemList>
-        {QRScannerModal && QRScannerModal()}
+        {QRScannerModal && <QRScannerModal />}
         </>
     );
 });

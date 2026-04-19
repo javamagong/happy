@@ -310,7 +310,7 @@ export default React.memo(() => {
 
     return (
         <>
-            {QRScannerModal}
+            {QRScannerModal && <QRScannerModal />}
             <ItemList>
                 {/* Account Info */}
                 <ItemGroup title={t('settingsAccount.accountInformation')}>
