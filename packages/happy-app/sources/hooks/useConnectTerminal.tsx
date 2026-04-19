@@ -8,7 +8,7 @@ import { Modal } from '@/modal';
 import { t } from '@/text';
 import { getServerUrl } from '@/sync/serverConfig';
 import { sync } from '@/sync/sync';
-import { Camera, useCameraDevices, type Code } from 'react-native-vision-camera';
+import { Camera, useCameraDevices, useCodeScanner, type Code } from 'react-native-vision-camera';
 
 interface UseConnectTerminalOptions {
     onSuccess?: () => void;
@@ -57,6 +57,11 @@ function QRScannerModal({
         }
     }, [hasScanned, onScanned]);
 
+    const codeScanner = useCodeScanner({
+        codeTypes: ['qr'],
+        onCodeScanned: handleCodeScanned,
+    });
+
     if (!visible) return null;
 
     if (!cameraDevice) {
@@ -89,10 +94,7 @@ function QRScannerModal({
                     style={StyleSheet.absoluteFill}
                     device={cameraDevice}
                     isActive={isActive}
-                    codeScanner={{
-                        codeTypes: ['qr'],
-                        onCodeScanned: handleCodeScanned,
-                    }}
+                    codeScanner={codeScanner}
                 />
                 <View style={styles.buttonContainer}>
                     <Pressable style={styles.cancelButton} onPress={onClose}>
