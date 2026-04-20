@@ -11,7 +11,7 @@ const bundleId = {
     production: region === 'cn' ? "com.slopus.happy.cn" : "com.ex3ndr.happy"
 }[variant];
 // const stagingElevenLabsAgentId = 'agent_7801k2c0r5hjfraa1kdbytpvs6yt';
-const productionElevenLabsAgentId = 'agent_6701k211syvvegba4kt7m68nxjmw';
+const productionElevenLabsAgentId = 'agent_2601kpmfme5redra05zybq030dyv';
 const elevenLabsAgentId = {
     development: productionElevenLabsAgentId,
     preview: productionElevenLabsAgentId,
@@ -27,7 +27,7 @@ export default {
     expo: {
         name,
         slug: "happy",
-        version: "1.8.3",
+        version: "1.8.5",
         runtimeVersion: "31",
         orientation: "default",
         icon: "./sources/assets/images/icon.png",
@@ -92,6 +92,7 @@ export default {
         },
         plugins: [
             require("./plugins/withEinkCompatibility.js"),
+            require("./plugins/withBundleInDebug.js"),
             require("./plugins/withConditionalGoogleServices.js"),
             [
                 "expo-router",
