@@ -92,7 +92,7 @@ export default {
         },
         plugins: [
             require("./plugins/withEinkCompatibility.js"),
-            require("./plugins/withBundleInDebug.js"),
+            // require("./plugins/withBundleInDebug.js"), // Disabled: causes AGP build error
             require("./plugins/withConditionalGoogleServices.js"),
             [
                 "expo-router",
@@ -106,7 +106,13 @@ export default {
             "expo-mail-composer",
             "expo-secure-store",
             "expo-web-browser",
-            "react-native-vision-camera",
+            [
+                "react-native-vision-camera",
+                {
+                    cameraPermissionText: "Allow $(PRODUCT_NAME) to access your camera to scan QR codes.",
+                    enableCodeScanner: true
+                }
+            ],
             "@more-tech/react-native-libsodium",
             "react-native-audio-api",
             "@livekit/react-native-expo-plugin",
